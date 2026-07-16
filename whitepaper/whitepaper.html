@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sona: The Neuroadaptive Accessibility Fabric — Technical Architecture v1</title>
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 20mm 20mm 20mm;
+    @bottom-center { content: counter(page); }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: "Inter", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.62;
+    color: #16181d;
+    margin: 0;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover { page-break-after: always; padding-top: 34mm; }
+  .mark {
+    display: inline-block;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #5b5f6b;
+    border: 1px solid #d9dbe1;
+    border-radius: 3px;
+    padding: 4px 9px;
+  }
+  .cover h1 {
+    font-size: 34pt;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    margin: 20mm 0 4mm 0;
+    color: #0b0c0f;
+  }
+  .cover .tagline {
+    font-size: 14pt;
+    font-weight: 400;
+    color: #4d525e;
+    letter-spacing: -0.01em;
+    margin: 0 0 16mm 0;
+  }
+  .rule { height: 3px; width: 64px; background: #0d9488; border-radius: 2px; margin-bottom: 14mm; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 34mm 1fr;
+    row-gap: 3.2mm;
+    font-size: 10pt;
+    max-width: 130mm;
+  }
+  .meta-grid dt {
+    font-weight: 600;
+    color: #6b7080;
+    font-size: 8.5pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-top: 1px;
+  }
+  .meta-grid dd { margin: 0; color: #16181d; }
+  .cover-foot {
+    margin-top: 24mm;
+    padding-top: 5mm;
+    border-top: 1px solid #e6e8ec;
+    font-size: 8.5pt;
+    color: #85899a;
+  }
+
+  /* ---------- Body ---------- */
+  h2 {
+    font-size: 15pt;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+    color: #0b0c0f;
+    margin: 11mm 0 3mm 0;
+    padding-bottom: 2.5mm;
+    border-bottom: 1px solid #e6e8ec;
+    page-break-after: avoid;
+  }
+  h2:first-of-type { margin-top: 0; }
+  h2 .num { color: #0d9488; margin-right: 8px; font-variant-numeric: tabular-nums; }
+
+  h3 { font-size: 11pt; font-weight: 700; color: #1d2027; margin: 6mm 0 2mm 0; page-break-after: avoid; }
+
+  p { margin: 0 0 3.4mm 0; }
+
+  .lead {
+    font-size: 11pt;
+    color: #33373f;
+    border-left: 3px solid #0d9488;
+    padding-left: 5mm;
+    margin-bottom: 5mm;
+  }
+
+  strong { font-weight: 650; color: #0b0c0f; }
+
+  code {
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 8.8pt;
+    background: #f4f5f7;
+    border: 1px solid #e6e8ec;
+    border-radius: 3px;
+    padding: 0.5px 4px;
+    color: #0b6f66;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 3mm 0 5mm 0;
+    page-break-inside: avoid;
+  }
+  th {
+    text-align: left;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #6b7080;
+    font-weight: 700;
+    border-bottom: 1.5px solid #d9dbe1;
+    padding: 0 3mm 2mm 0;
+  }
+  td { padding: 2.4mm 3mm 2.4mm 0; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  td:first-child { font-weight: 600; color: #0b0c0f; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .sub { font-weight: 400; color: #85899a; font-size: 8.5pt; }
+
+  .layer {
+    border: 1px solid #e6e8ec;
+    border-left: 3px solid #0b0c0f;
+    border-radius: 0 4px 4px 0;
+    padding: 4mm 5mm 2.5mm 5mm;
+    margin: 0 0 4mm 0;
+    page-break-inside: avoid;
+    background: #fbfbfc;
+  }
+  .layer h3 { margin-top: 0; }
+  .layer .kicker {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #0d9488;
+    margin-bottom: 1mm;
+  }
+  .layer p:last-child { margin-bottom: 1.5mm; }
+
+  ol.flow { margin: 0 0 4mm 0; padding-left: 0; list-style: none; counter-reset: step; }
+  ol.flow li { counter-increment: step; position: relative; padding-left: 9mm; margin-bottom: 2.4mm; }
+  ol.flow li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.4mm;
+    width: 5.6mm; height: 5.6mm;
+    background: #0b0c0f;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 7.5pt;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .callout {
+    background: #f7f8fa;
+    border: 1px solid #e6e8ec;
+    border-radius: 4px;
+    padding: 4mm 5mm;
+    font-size: 9.5pt;
+    margin: 0 0 5mm 0;
+    page-break-inside: avoid;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .diagram {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 7.6pt;
+    line-height: 1.5;
+    background: #0b0c0f;
+    color: #e8eaee;
+    border-radius: 5px;
+    padding: 5mm;
+    margin: 0 0 5mm 0;
+    white-space: pre;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+  .diagram .hi { color: #45e0c0; }
+  .diagram .dim { color: #7f8492; }
+
+  .footer-note {
+    margin-top: 10mm;
+    padding-top: 4mm;
+    border-top: 1px solid #e6e8ec;
+    font-size: 8.5pt;
+    color: #85899a;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <span class="mark">Technical Architecture &amp; System Design</span>
+  <h1>Sona</h1>
+  <p class="tagline">The Neuroadaptive Accessibility Fabric for Adobe Express</p>
+  <div class="rule"></div>
+
+  <dl class="meta-grid">
+    <dt>Author</dt><dd>Areeb Abdul Ghani</dd>
+    <dt>Role</dt><dd>Solo Founder &amp; Engineer — 7 years, 3 shipped Adobe Express add-ons</dd>
+    <dt>Contact</dt><dd>areebghani359@gmail.com</dd>
+    <dt>Location</dt><dd>Bengaluru, Karnataka, India</dd>
+    <dt>Document</dt><dd>Sona_Technical_Architecture_v1</dd>
+    <dt>Date</dt><dd>July 16, 2026</dd>
+    <dt>Stage</dt><dd>Pre-seed · Working prototype · Public beta target September 2026</dd>
+  </dl>
+
+  <p class="cover-foot">Submitted in support of an application to the Adobe Fund for Design. Use case: Accessibility.</p>
+</section>
+
+<!-- ============ 1 ============ -->
+<h2><span class="num">1</span>Executive Summary</h2>
+
+<p class="lead">Sona is an Adobe Express add-on that models how different human minds will experience a design — before any human sees it — and then generates accessible variants for each of them, automatically and continuously.</p>
+
+<p>Every accessibility tool on the market measures. It reads hex codes and font sizes, returns a score, and leaves the redesign to you. That approach is reactive and element-based, and it misses the thing that actually matters: accessibility is a <strong>holistic cognitive experience</strong>. A slide can pass every contrast ratio and still be unusable — too dense for an ADHD reader, too sensorially jarring for an autistic one, rhythmically broken for a dyslexic one.</p>
+
+<p>Sona implements a four-layer architecture. A <strong>Cognitive Digital Twin</strong> builds a semantic graph of the live document. An <strong>Agent Swarm</strong> simulates a distinct neurotype per agent and returns live Cognitive Load Scores. A <strong>Neuroadaptive Variant Pipeline</strong> forks one master design into editable versions tuned per cognitive profile, preserving brand identity. A <strong>Portfolio Mesh</strong> applies Kubernetes-style reconciliation across an entire organization's Express projects, so one spec change heals every asset.</p>
+
+<p>This document details the system architecture, data flows, security model, and implementation roadmap.</p>
+
+<!-- ============ 2 ============ -->
+<h2><span class="num">2</span>The Core Engineering Problem</h2>
+
+<p>Existing tools fall into two categories, and both are inadequate.</p>
+
+<p><strong>The ruler tools</strong> — Stark, WAVE, axe DevTools, built-in contrast checkers. They measure things. They tell you blue-on-light-blue fails WCAG AA. Useful, but purely reactive, purely visual, purely element-based. No concept of cognitive load, no model of neurodivergent sensory processing, and no ability to fix what they find. You get a report, then you are on your own.</p>
+
+<p><strong>The generative tools</strong> — AI that writes alt text or suggests palettes. Better, but shallow. They see one element at a time with no context of the whole document. They will write alt text for an image without knowing the same image reappears three pages later in a changed narrative context that demands a different description. They will suggest a color without knowing it clashes with an animation on the next slide and triggers sensory overwhelm.</p>
+
+<div class="callout">
+  <p><strong>The reframe.</strong> Accessibility is an <em>infrastructure</em> problem disguised as a design problem. It needs continuous monitoring, intelligent remediation, and a systems-level view of how information flows through documents across an entire organization — not a one-time audit on a single file.</p>
+  <p>That is a solved problem in distributed systems. Sona ports desired-state reconciliation into the creative layer and treats an Express document as a microservice with a desired accessibility state.</p>
+</div>
+
+<!-- ============ 3 ============ -->
+<h2><span class="num">3</span>System Architecture</h2>
+
+<p>Four layers, event-driven, running inside the Express add-on runtime with an off-thread simulation tier.</p>
+
+<div class="diagram"><span class="dim">┌──────────────── ADOBE EXPRESS CANVAS (live document) ────────────┐</span>
+<span class="dim">└────────────────────────────┬─────────────────────────────────────┘</span>
+                     observe / patch
+<span class="dim">┌────────────────────────────▼─────────────────────────────────────┐</span>
+<span class="hi">│  LAYER 1 — COGNITIVE DIGITAL TWIN                                 │</span>
+<span class="dim">│</span>  semantic graph · reading order · saliency map · density field    <span class="dim">│</span>
+<span class="dim">└────────────────────────────┬─────────────────────────────────────┘</span>
+<span class="dim">┌────────────────────────────▼─────────────────────────────────────┐</span>
+<span class="hi">│  LAYER 2 — AGENT SWARM              (Web Workers, off main thread)│</span>
+<span class="dim">│</span>  Attention   Sensory   Reading   Vision                           <span class="dim">│</span>
+<span class="dim">│</span>    ADHD       autism    dyslexia   low vision / CVD               <span class="dim">│</span>
+<span class="dim">│</span>       └──────────┴─────┬────┴──────────┘                          <span class="dim">│</span>
+<span class="dim">│</span>              Cognitive Load Score, per neurotype                   <span class="dim">│</span>
+<span class="dim">└────────────────────────────┬─────────────────────────────────────┘</span>
+<span class="dim">┌────────────────────────────▼─────────────────────────────────────┐</span>
+<span class="hi">│  LAYER 3 — NEUROADAPTIVE VARIANT PIPELINE                         │</span>
+<span class="dim">│</span>  master ──► ADHD · Autism · Dyslexia · Low-Vision                 <span class="dim">│</span>
+<span class="dim">│</span>          <span class="dim">(fully editable Express pages · brand-locked · Firefly)</span>  <span class="dim">│</span>
+<span class="dim">└────────────────────────────┬─────────────────────────────────────┘</span>
+<span class="dim">┌────────────────────────────▼─────────────────────────────────────┐</span>
+<span class="hi">│  LAYER 4 — PORTFOLIO MESH             (reconciliation control loop)│</span>
+<span class="dim">│</span>  a11y-spec.json ──► diff(desired, actual) ──► heal across projects<span class="dim">│</span>
+<span class="dim">└──────────────────────────────────────────────────────────────────┘</span></div>
+
+<div class="layer">
+  <p class="kicker">Layer One</p>
+  <h3>The Cognitive Digital Twin</h3>
+  <p>Sona does not read a design as a list of elements. It builds a semantic graph of the document: reading order, hierarchy, visual grouping, saliency, information density per region, and cross-page narrative context — the fact that <em>this</em> image already appeared on page three, and what that means for its description here.</p>
+  <p>The twin is what makes everything downstream possible. It is the difference between checking a text box and understanding a page. Building it requires deep familiarity with the Express document object model, which is the direct product of shipping three prior Express add-ons.</p>
+</div>
+
+<div class="layer">
+  <p class="kicker">Layer Two</p>
+  <h3>The Agent Swarm</h3>
+  <p>Rather than one monolithic checker, Sona deploys specialized agents that each model a specific neurotype and report against the twin. Scores update live in a side panel as the user designs — a fitness tracker for the design's inclusivity. Add too many elements and the ADHD score spikes <em>before</em> the layout is finished. Push a gradient too hard and the Sensory score rises, with a calmed alternative offered that holds the brand.</p>
+  <table>
+    <thead><tr><th>Agent</th><th>Models</th><th>Method</th></tr></thead>
+    <tbody>
+      <tr><td>Attention</td><td>ADHD focus patterns</td><td>Transformer-based attention mapping — predicts where the eye lands, bounces, and gets lost in clutter.</td></tr>
+      <tr><td>Sensory</td><td>Autistic sensory processing</td><td>Detects color temperature, pattern density, and motion frequency likely to cause overwhelm.</td></tr>
+      <tr><td>Reading</td><td>Dyslexic text parsing</td><td>Measures cognitive load, saccade patterns, and paragraph entropy.</td></tr>
+      <tr><td>Vision</td><td>Low vision, CVD, AMD</td><td>Goes past contrast ratios to model acuity loss, color blindness, and age-related macular degeneration.</td></tr>
+    </tbody>
+  </table>
+  <p>Agents run in Web Workers off the main thread. Keeping a live cognitive simulation swarm from freezing the browser is an orchestration and back-pressure problem — the same class of problem as scheduling work across a cluster.</p>
+</div>
+
+<div class="layer">
+  <p class="kicker">Layer Three</p>
+  <h3>The Neuroadaptive Variant Pipeline</h3>
+  <p>On publish, Sona forks the master design into variants optimized per cognitive profile — generated as <strong>fully editable Express pages</strong>, never a black box export.</p>
+  <table>
+    <thead><tr><th>Variant</th><th>Transformation</th></tr></thead>
+    <tbody>
+      <tr><td>ADHD</td><td>Strips decorative clutter, sharpens visual hierarchy, adds anchor points so attention flows.</td></tr>
+      <tr><td>Autism</td><td>Replaces unpredictable patterns with consistent grids, mutes sensory-heavy color, smooths transitions.</td></tr>
+      <tr><td>Dyslexia</td><td>Adjusts font metrics, breaks long paragraphs, opens line spacing — message unchanged.</td></tr>
+      <tr><td>Low Vision</td><td>Scales up, maximizes contrast, simplifies layout while preserving brand.</td></tr>
+    </tbody>
+  </table>
+  <p>Brand identity is a hard constraint, not a suggestion. When the Sensory Agent needs a calmed background or the Reading Agent needs new heading structure and visual separators, the pipeline calls <strong>Adobe Firefly</strong> to generate assets that stay inside the brand system.</p>
+</div>
+
+<div class="layer">
+  <p class="kicker">Layer Four</p>
+  <h3>The Portfolio Mesh</h3>
+  <p>Every other tool assumes one file in isolation. Sona scans a team's entire Express project set and builds a unified accessibility knowledge graph — surfacing systemic findings: <em>your whole sales deck series uses a font that fails dyslexia standards</em>, or <em>your Q3 social campaign has a contrast defect across seventeen posts</em>.</p>
+  <p>Requirements are declared once in an <code>a11y-spec.json</code>. When legal updates the rules, or WCAG 3.0 finalizes its cognitive standards, a control loop diffs desired state against every design in the portfolio and heals the drift. This is GitOps reconciliation, applied to creative assets for the first time.</p>
+</div>
+
+<!-- ============ 4 ============ -->
+<h2><span class="num">4</span>Data Flow</h2>
+
+<p>A typical authoring session proceeds as follows.</p>
+
+<ol class="flow">
+  <li>The user designs normally in Express. The <strong>Cognitive Digital Twin</strong> incrementally rebuilds the semantic graph as the canvas mutates.</li>
+  <li>The <strong>Agent Swarm</strong> re-scores the affected regions off-thread and streams updated Cognitive Load Scores into the side panel.</li>
+  <li>A score crosses threshold — information density spikes the ADHD score. Sona warns in place and proposes a remediation that respects the brand system.</li>
+  <li>The user hits <strong>Generate Variants</strong>. The pipeline forks the master into neuroadaptive versions, calling <strong>Firefly</strong> where new assets are required.</li>
+  <li>The user reviews each variant as an ordinary editable Express page, tweaks, and exports.</li>
+  <li>For teams, the <strong>Portfolio Mesh</strong> registers the design against the shared <code>a11y-spec</code> and keeps it compliant as requirements evolve.</li>
+</ol>
+
+<p>Prediction, not just measurement, is the point: the cognitive experience is known before a single human sees the design.</p>
+
+<!-- ============ 5 ============ -->
+<h2><span class="num">5</span>Security, Ethics, and Enterprise Compliance</h2>
+
+<table>
+  <thead><tr><th>Control</th><th>Implementation</th></tr></thead>
+  <tbody>
+    <tr><td>Data residency</td><td>Simulation runs client-side in the add-on sandbox wherever possible. Server-side work occurs in ephemeral containers with no persistent storage of customer design content.</td></tr>
+    <tr><td>Third-party auth</td><td>OAuth 2.0 with PKCE for all integrations. No long-lived secrets in the add-on runtime.</td></tr>
+    <tr><td>Human authority</td><td>Sona proposes; the user disposes. Every variant is an editable Express page, never a locked artifact. No mutation is applied silently.</td></tr>
+    <tr><td>Model honesty</td><td>Agents simulate cognitive <em>models</em>, not individuals. Scores are decision support, not a certification, and the UI states this plainly rather than implying lived experience is replaceable.</td></tr>
+    <tr><td>Standards</td><td>WCAG 2.1 AA enforced today; architecture is designed against the WCAG 3.0 cognitive draft. Section 508 and ADA reporting supported via audit trails.</td></tr>
+    <tr><td>Certification</td><td>SOC 2 Type II targeted for Q4 2026.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 6 ============ -->
+<h2><span class="num">6</span>Implementation Roadmap</h2>
+
+<table>
+  <thead><tr><th>Phase</th><th>Scope</th></tr></thead>
+  <tbody>
+    <tr><td>Phase One<br><span class="sub">Month One</span></td><td>Cognitive Digital Twin hardened across multi-page documents. Attention and Vision agents to production. Live Cognitive Load Score panel.</td></tr>
+    <tr><td>Phase Two<br><span class="sub">Month Two</span></td><td>Sensory and Reading agents. Neuroadaptive Variant Pipeline with Firefly integration. Predictive persona mode. Public beta release.</td></tr>
+    <tr><td>Phase Three<br><span class="sub">Post-grant</span></td><td>Portfolio Mesh, <code>a11y-spec</code> reconciliation engine, team compliance dashboards, and enterprise audit logging.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <p><strong>Current status.</strong> A working proof of concept builds a semantic graph of a multi-page Express document and simulates attention flow for ADHD users. The grant funds turning that into the full neuroadaptive fabric — generative variants and portfolio-wide reconciliation.</p>
+</div>
+
+<!-- ============ 7 ============ -->
+<h2><span class="num">7</span>Business Impact</h2>
+
+<p>Express is seen today as a tool for social creators and marketing teams. That market is large, and it excludes every industry where accessibility is not optional. Government agencies need Section 508 compliance. Public universities need ADA compliance for course materials. Hospitals need patient-facing documents that work for elderly users with low vision and cognitive decline. Enterprises need DEI commitments that are actually verifiable. These organizations avoid consumer design tools and cannot absorb the cost of external audits to certify creative output.</p>
+
+<p>Sona makes Express the most inclusive design platform on the market — and therefore usable by all of them. Beyond market expansion, every healing operation is a potential <strong>Firefly consumption event</strong>: a calmed background for the Sensory Agent, new heading structure for the Reading Agent. And once a team encodes its personas and compliance rules into Sona, that configuration becomes organizational knowledge that does not port elsewhere.</p>
+
+<p>Strategically, it positions Adobe as the leader in ethical AI and inclusive design. In a market racing to generate flashier visuals faster, Adobe becomes the company ensuring those visuals can be experienced by every human mind — a narrative that lands with enterprise buyers, educators, regulators, and the creative community alike.</p>
+
+<h3>Business model</h3>
+<table>
+  <thead><tr><th>Tier</th><th>Includes</th></tr></thead>
+  <tbody>
+    <tr><td>Free</td><td>Cognitive load scoring for two neurotypes, standard contrast and typography checks, alt text generation. Accessibility should not be a luxury — every student and freelancer gets real value unpaid.</td></tr>
+    <tr><td>Pro<br><span class="sub">$25–40 / user / mo</span></td><td>Full agent swarm, all neurotypes, predictive persona mode, sensory safety analysis, up to five neuroadaptive variants per design. Justified against the cost of a single external audit it replaces.</td></tr>
+    <tr><td>Enterprise<br><span class="sub">Per seat, volume</span></td><td>Portfolio Mesh, team compliance dashboards, legal audit trails, custom neurotype training for healthcare or education, and the reconciliation engine.</td></tr>
+  </tbody>
+</table>
+<p>Free users still generate Firefly credits when healing agents create assets. Enterprise brings compliance-driven accounts — the regulated sectors Adobe has been trying to reach — into the Express ecosystem.</p>
+
+<!-- ============ 8 ============ -->
+<h2><span class="num">8</span>Why This Is Hard to Copy</h2>
+
+<p>The differentiator is the altitude. Rulers work at the element level. Sona works at the cognitive systems level, and each capability compounds on the last: the twin makes the swarm possible, the swarm makes variants possible, variants make the mesh worth having.</p>
+
+<p>Canva's bulk create forks a design from a CSV. Sona forks a design from human cognition. That is a different category, not a better feature.</p>
+
+<p>The moat is an intersection of skills that rarely co-occur. Building a semantic graph of a dynamic canvas requires deep knowledge of the Express document model — the product of three shipped Express add-ons. Running a multi-agent cognitive simulation swarm without freezing the browser requires the orchestration and back-pressure instincts earned managing Kubernetes clusters and CI/CD pipelines. Designing a generative variant system that respects brand identity while adapting per neurotype requires the template and workflow engine experience gained building a no-code platform. A frontend developer cannot build the infrastructure; a backend engineer cannot navigate the canvas. That intersection is the moat.</p>
+
+<p class="footer-note">Sona — The Neuroadaptive Accessibility Fabric · Areeb Abdul Ghani · areebghani359@gmail.com · Bengaluru, India · July 16, 2026</p>
+
+</body>
+</html>

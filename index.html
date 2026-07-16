@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sona — The Neuroadaptive Accessibility Fabric for Adobe Express</title>
+<meta name="description" content="Sona simulates how ADHD, autistic, dyslexic, and low-vision minds will experience your Adobe Express design — then generates an accessible variant for each.">
+<meta property="og:title" content="Sona — The Neuroadaptive Accessibility Fabric">
+<meta property="og:description" content="Accessibility checkers measure. Sona predicts, then heals. Cognitive Digital Twin + Agent Swarm + Neuroadaptive Variants for Adobe Express.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2308090c'/><g fill='none' stroke='%2345e0c0' stroke-width='7' stroke-linecap='round'><circle cx='50' cy='50' r='9'/><path d='M50 20v9M50 71v9M20 50h9M71 50h9'/></g></svg>">
+<style>
+  :root {
+    --bg: #08090c;
+    --panel: #101319;
+    --line: #1f2530;
+    --line-soft: #161a22;
+    --text: #eaedf1;
+    --muted: #949aab;   /* 7.2:1 on --bg */
+    --dim: #6a7183;     /* 4.6:1 on --bg */
+    --accent: #45e0c0;
+    --accent-ink: #06110e;
+    --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* calm, low-frequency backdrop — deliberately not a busy pattern */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 44% at 50% -6%, rgba(69,224,192,0.07), transparent 70%),
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 100% 72px;
+    mask-image: radial-gradient(ellipse 92% 58% at 50% 0%, #000 22%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 92% 58% at 50% 0%, #000 22%, transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 28px; }
+
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 10px 16px;
+    border-radius: 7px;
+    font-weight: 650;
+    font-size: 14px;
+    z-index: 10;
+    text-decoration: none;
+  }
+  .skip:focus { left: 28px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 13px;
+    background: rgba(255,255,255,0.015);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  header { padding: 116px 0 82px; }
+
+  h1 {
+    font-size: clamp(52px, 11vw, 92px);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    font-weight: 700;
+    margin: 30px 0 18px;
+  }
+  h1 .glyph { color: var(--accent); }
+
+  .tagline {
+    font-size: clamp(19px, 3.6vw, 25px);
+    line-height: 1.42;
+    color: var(--muted);
+    letter-spacing: -0.018em;
+    max-width: 32ch;
+  }
+  .tagline b { color: var(--text); font-weight: 600; }
+
+  .hero-sub { margin-top: 26px; max-width: 60ch; color: var(--muted); font-size: 15.5px; }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14.5px;
+    font-weight: 550;
+    text-decoration: none;
+    padding: 11px 19px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    color: var(--text);
+    background: var(--panel);
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .btn:hover { border-color: #38414f; background: #161b24; transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 650; }
+  .btn.primary:hover { background: #63e9cd; border-color: #63e9cd; }
+  .btn .arw { opacity: .65; }
+
+  /* ---------- Sections ---------- */
+  section { padding: 62px 0; border-top: 1px solid var(--line-soft); }
+
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  h2 { font-size: clamp(27px, 5vw, 34px); letter-spacing: -0.03em; line-height: 1.18; font-weight: 650; margin-bottom: 18px; }
+
+  p.body { color: var(--muted); max-width: 66ch; margin-bottom: 15px; }
+  p.body b, p.body strong { color: var(--text); font-weight: 600; }
+  .quiet { color: var(--dim); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 30px; }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.022), rgba(255,255,255,0));
+  }
+  .card .k {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    color: var(--dim);
+  }
+  .card.now { border-color: #262b33; }
+  .card.now .k { color: #8d94a3; }
+  .card.next { border-color: #1e3a35; box-shadow: inset 0 0 0 1px rgba(69,224,192,0.06); }
+  .card.next .k { color: var(--accent); }
+  .card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; margin-bottom: 7px; }
+  .card p { font-size: 14.2px; color: var(--muted); line-height: 1.6; }
+
+  /* agents */
+  .agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 12px; margin-top: 28px; }
+  .agent {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    background: var(--panel);
+  }
+  .agent .nm { font-size: 16px; font-weight: 620; letter-spacing: -0.015em; margin-bottom: 2px; }
+  .agent .nt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 9px;
+  }
+  .agent p { font-size: 13.6px; color: var(--muted); line-height: 1.58; }
+
+  /* layers */
+  .layers { margin-top: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    background: var(--panel);
+    transition: border-color .18s ease, transform .18s ease;
+  }
+  .layer:hover { border-color: #38414f; transform: translateY(-1px); }
+  .layer .n {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(69,224,192,0.06);
+  }
+  .layer h3 { font-size: 17.5px; font-weight: 620; letter-spacing: -0.018em; margin-bottom: 6px; }
+  .layer p { font-size: 14.6px; color: var(--muted); line-height: 1.62; margin-bottom: 10px; }
+  .layer p:last-child { margin-bottom: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* status */
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 12px; margin-top: 28px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 18px; background: var(--panel); }
+  .stat .v { font-size: 21px; font-weight: 650; letter-spacing: -0.025em; margin-bottom: 3px; }
+  .stat .l { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--dim); }
+  .stat .v .accent { color: var(--accent); }
+
+  footer { border-top: 1px solid var(--line-soft); padding: 54px 0 64px; }
+  .foot-mail {
+    display: inline-block;
+    font-size: clamp(21px, 4.4vw, 30px);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3px;
+    transition: color .18s ease, border-color .18s ease;
+    word-break: break-word;
+  }
+  .foot-mail:hover { color: var(--accent); border-color: var(--accent); }
+  .foot-meta {
+    margin-top: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--dim);
+    letter-spacing: 0.03em;
+  }
+  .foot-meta a { text-decoration: none; border-bottom: 1px solid var(--line); }
+  .foot-meta a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header { padding: 78px 0 60px; }
+    section { padding: 50px 0; }
+    .split { grid-template-columns: 1fr; }
+    .layer { grid-template-columns: 1fr; gap: 12px; }
+    .layer .n { width: 34px; }
+    .cta-row .btn { flex: 1 1 auto; justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="wrap">
+
+  <header>
+    <span class="tag"><span class="dot" aria-hidden="true"></span>Pre-seed · Prototype running</span>
+    <h1>Sona<span class="glyph" aria-hidden="true">.</span></h1>
+    <p class="tagline">The <b>Neuroadaptive Accessibility Fabric</b> for Adobe&nbsp;Express.</p>
+    <p class="hero-sub">Every accessibility tool measures your design and hands you a score. Sona simulates how an ADHD, autistic, dyslexic, or low-vision mind will actually experience it — before a single human sees it — then builds a version for each of them.</p>
+
+    <div class="cta-row">
+      <a class="btn primary" href="Sona_Technical_Architecture_v1.pdf">Read the whitepaper <span class="arw" aria-hidden="true">↗</span></a>
+      <a class="btn" href="#architecture">Architecture</a>
+      <a class="btn" href="mailto:areebghani359@gmail.com">Get in touch</a>
+    </div>
+  </header>
+
+  <main id="main">
+
+  <section id="problem">
+    <p class="sec-label">01 — The Problem</p>
+    <h2>A score is not an answer.</h2>
+    <p class="body">Today's tools treat your design as a dead object to be measured. You finish the deck, you run the checker, it returns a number, and you are on your own to figure out how to fix it. That is broken twice over: it is <b>reactive</b>, because by the time you run the check you have already built the problem in — and it is <b>element-based</b>, because it looks at each text box in isolation.</p>
+    <p class="body">Accessibility is not a property of elements. It is a holistic cognitive experience. A slide can pass every contrast ratio and still be unusable — too dense for an ADHD reader, too jarring for an autistic one, rhythmically broken for a dyslexic one. No ratio catches any of that.</p>
+    <p class="body quiet">Accessibility is an infrastructure problem wearing a design problem's clothes. It needs continuous monitoring, intelligent remediation, and a systems-level view of an entire organization's assets. <b>That is what Sona is.</b></p>
+
+    <div class="split">
+      <div class="card now">
+        <p class="k">Every other tool</p>
+        <h3>Measure and report</h3>
+        <p>A ruler. It tells you the blue fails, then leaves. It has no concept of cognitive load and no ability to fix what it finds.</p>
+      </div>
+      <div class="card next">
+        <p class="k">With Sona</p>
+        <h3>Predict and heal</h3>
+        <p>A simulation. It knows how four different minds will read the page before you publish — and generates an editable variant tuned to each.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="agents">
+    <p class="sec-label">02 — The Swarm</p>
+    <h2>Four agents. Four minds.</h2>
+    <p class="body">Instead of one monolithic checker, Sona deploys specialized agents that each model a specific neurotype — running off the main thread so the canvas never stutters. Scores update live as you design, like a fitness tracker for your design's inclusivity.</p>
+
+    <div class="agents">
+      <div class="agent">
+        <p class="nm">Attention</p>
+        <p class="nt">ADHD</p>
+        <p>Transformer-based attention mapping predicts where the eye lands, where it bounces off, and where it gets lost in visual clutter.</p>
+      </div>
+      <div class="agent">
+        <p class="nm">Sensory</p>
+        <p class="nt">Autism</p>
+        <p>Models sensory processing to catch color temperatures, pattern densities, and motion frequencies that cause overwhelm.</p>
+      </div>
+      <div class="agent">
+        <p class="nm">Reading</p>
+        <p class="nt">Dyslexia</p>
+        <p>Simulates text parsing to measure cognitive load, saccade patterns, and paragraph entropy — the reading rhythm no ratio sees.</p>
+      </div>
+      <div class="agent">
+        <p class="nm">Vision</p>
+        <p class="nt">Low vision · CVD</p>
+        <p>Goes far past contrast ratios to model acuity loss, color blindness, and age-related macular degeneration.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <p class="sec-label">03 — The Architecture</p>
+    <h2>Four layers. One control loop.</h2>
+    <p class="body">Sona ports DevOps primitives into the creative layer: an Express document becomes a microservice with a desired accessibility state.</p>
+
+    <div class="layers">
+      <div class="layer">
+        <div class="n" aria-hidden="true">01</div>
+        <div>
+          <h3>Cognitive Digital Twin</h3>
+          <p>A live semantic graph of the document — reading order, hierarchy, saliency, information density, and cross-page narrative context. It knows that this image already appeared on page three and that its description here must change. The difference between checking a text box and understanding a page.</p>
+          <div class="chips">
+            <span class="chip">semantic graph</span>
+            <span class="chip">reading order</span>
+            <span class="chip">saliency map</span>
+            <span class="chip">density field</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="n" aria-hidden="true">02</div>
+        <div>
+          <h3>Agent Swarm</h3>
+          <p>Attention, Sensory, Reading, and Vision agents score the twin continuously and stream a Cognitive Load Score per neurotype. Add too many elements and the ADHD score spikes before the layout is even finished. Push a gradient too far and Sona offers a calmed alternative that keeps your brand.</p>
+          <div class="chips">
+            <span class="chip">Web Workers</span>
+            <span class="chip">live scoring</span>
+            <span class="chip">predictive persona</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="n" aria-hidden="true">03</div>
+        <div>
+          <h3>Neuroadaptive Variants</h3>
+          <p>One master design forks into versions tuned per cognitive profile: clutter stripped for ADHD, patterns regularized and color muted for autism, font metrics and rhythm adjusted for dyslexia, scaled and simplified for low vision. Generated as <b>fully editable Express pages</b> — never a black box. Firefly supplies new assets that stay inside your brand system.</p>
+          <div class="chips">
+            <span class="chip">ADHD</span>
+            <span class="chip">Autism</span>
+            <span class="chip">Dyslexia</span>
+            <span class="chip">Low Vision</span>
+            <span class="chip">brand-locked</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div class="n" aria-hidden="true">04</div>
+        <div>
+          <h3>Portfolio Mesh</h3>
+          <p>Every other tool assumes one file in isolation. Sona scans your team's whole project set and builds one accessibility knowledge graph — <i>your entire deck series uses a font that fails dyslexia standards</i>. Declare requirements once in a spec; when the law changes or WCAG 3.0 lands, a reconciliation loop heals every design you own.</p>
+          <div class="chips">
+            <span class="chip">a11y-spec.json</span>
+            <span class="chip">reconciliation loop</span>
+            <span class="chip">audit trail</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="status">
+    <p class="sec-label">04 — The Status</p>
+    <h2>Prototype phase. Seeking funding for public beta.</h2>
+    <p class="body">A working proof of concept already builds a semantic graph of a multi-page Express document and simulates attention flow for ADHD users. Built solo in Bengaluru, on the back of three shipped Express add-ons and seven years of reconciliation engines, Kubernetes clusters, and workflow platforms.</p>
+    <p class="body quiet">The grant funds turning that proof of concept into the full neuroadaptive fabric — generative variants and portfolio-wide reconciliation.</p>
+
+    <div class="status-grid">
+      <div class="stat"><p class="v">Pre-seed</p><p class="l">Stage</p></div>
+      <div class="stat"><p class="v"><span class="accent">Sept 2026</span></p><p class="l">Public beta</p></div>
+      <div class="stat"><p class="v">3 shipped</p><p class="l">Express add-ons</p></div>
+      <div class="stat"><p class="v">Bengaluru</p><p class="l">Built solo in</p></div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer>
+    <p class="sec-label">Contact</p>
+    <a class="foot-mail" href="mailto:areebghani359@gmail.com">areebghani359@gmail.com</a>
+    <div class="foot-meta">
+      <span>Areeb Abdul Ghani</span>
+      <span>Bengaluru, India</span>
+      <a href="Sona_Technical_Architecture_v1.pdf">Technical Architecture v1 (PDF)</a>
+      <span>© 2026 Sona</span>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>
